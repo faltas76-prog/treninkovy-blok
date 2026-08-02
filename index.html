@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tréninkový blok</title>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
+<style>
+  :root{
+    --ink:#14150f;
+    --panel:#ffffff;
+    --green:#4f6b2c;
+    --green-dark:#2f4318;
+    --green-light:#7d9a4e;
+    --paper:#f3f3ee;
+    --grey:#6b6b62;
+    --border:#c9c9be;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;background:#d8d8d0;font-family:'Arial Narrow',Arial,Helvetica,sans-serif;color:var(--ink);}
+  #root{min-height:100vh;}
+
+  /* ---------- App chrome (hidden on print) ---------- */
+  .app{display:flex;min-height:100vh;}
+  .sidebar{
+    width:270px;flex-shrink:0;background:var(--ink);color:#fff;
+    padding:18px 14px;display:flex;flex-direction:column;gap:10px;
+  }
+  .sidebar h2{font-size:15px;margin:0 0 4px;letter-spacing:.5px;}
+  .sidebar .sub{font-size:10px;color:var(--green-light);letter-spacing:1.5px;margin-bottom:10px;}
+  .btn{
+    background:var(--green);color:#fff;border:none;border-radius:4px;
+    padding:9px 10px;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.3px;
+  }
+  .btn:hover{background:var(--green-light);}
+  .btn.secondary{background:transparent;border:1px solid #555;color:#ddd;}
+  .btn.secondary:hover{border-color:var(--green-light);color:var(--green-light);}
+  .btn.danger{background:transparent;border:1px solid #6b2f2f;color:#d99;}
+  .btn.danger:hover{background:#3a1f1f;}
+  .session-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin-top:6px;}
+  .session-item{
+    padding:8px 9px;border-radius:4px;font-size:11.5px;cursor:pointer;
+    border:1px solid #333;background:#1c1d16;
+  }
+  .session-item.active{border-color:var(--green-light);background:#25301a;}
+  .session-item .d{color:#999;font-size:10px;}
+  .toolbar{
+    display:flex;gap:8px;padding:12px 22px;background:#eceae2;border-bottom:1px solid var(--border);
+    align-items:center;justify-content:space-between;
+  }
+  .toolbar .info{font-size:11px;color:var(--grey);}
+  .content{flex:1;overflow-y:auto;padding:24px;display:flex;justify-content:center;}
+
+  input[type=text], input[type=number], input[type=date], input[type=time], textarea{
+    font-family:inherit;font-size:12px;border:none;border-bottom:1px dotted #aaa;
+    background:transparent;padding:2px 3px;width:100%;color:var(--ink);
+  }
+  input:focus, textarea:focus{outline:none;border-bottom:1px solid var(--green);}
+  textarea{resize:vertical;min-height:34px;}
+
+  /* ---------- Sheet ---------- */
+  .sheet{width:1122px;background:var(--paper);padding:22px;box-shadow:0 4px 24px rgba(0,0,0,.18);}
+  .header{
+    background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:space-between;
+    padding:16px 24px;position:relative;overflow:hidden;border-bottom:5px solid var(--green-light);
+  }
+  .header::after{
+    content:"";position:absolute;right:0;top:0;bottom:0;width:220px;
+    background:repeating-linear-gradient(115deg, transparent 0 10px, var(--green) 10px 16px, transparent 16px 26px);
+    opacity:.55;pointer-events:none;
+  }
+  .club{display:flex;align-items:center;gap:14px;z-index:1;}
+  .badge{width:50px;height:50px;border-radius:50%;border:2px solid var(--green-light);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+  .club-name input{color:#fff;font-weight:800;font-size:16px;border-bottom:1px dotted #666;padding:1px 2px;}
+  .club-name .sub-input{width:180px;}
+  .club-name .sub-input input{color:var(--green-light);font-size:9px;letter-spacing:2px;text-transform:uppercase;}
+  .title{text-align:center;z-index:1;}
+  .title h1{margin:0;font-size:27px;letter-spacing:1px;font-weight:800;}
+  .title p{margin:4px 0 0;font-size:11px;letter-spacing:3px;color:var(--green-light);text-transform:uppercase;}
+  .header-icon{font-size:30px;z-index:1;opacity:.9;}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr 1.55fr;gap:10px;margin-top:10px;}
+  .grid2{display:grid;grid-template-columns:1fr 0.85fr 0.85fr 1fr;gap:10px;margin-top:10px;}
+  .grid3{display:grid;grid-template-columns:1.3fr 1fr;gap:10px;margin-top:10px;}
+  .panel{background:var(--panel);border:1px solid var(--border);}
+  .panel-head{background:var(--ink);color:#fff;display:flex;align-items:center;gap:8px;padding:7px 10px;font-size:11.5px;font-weight:800;letter-spacing:.5px;}
+  .panel-head .ic{width:20px;height:20px;border-radius:4px;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;}
+  .panel-body{padding:11px 13px;font-size:12px;}
+
+  .field{display:flex;align-items:center;gap:6px;margin:8px 0;color:#333;}
+  .field b{white-space:nowrap;font-weight:700;font-size:11px;}
+  .field input{flex:1;}
+  .row-2{display:flex;gap:14px;}
+  .row-2>.field{flex:1;}
+
+  .weather{display:flex;gap:14px;margin:4px 0 6px;}
+  .weather label{text-align:center;font-size:15px;cursor:pointer;}
+  .weather input{width:13px;height:13px;display:block;margin:3px auto 0;}
+
+  .obj-row{display:flex;align-items:center;gap:8px;margin:9px 0;border-bottom:1px dotted #bbb;padding-bottom:5px;}
+  .obj-row .ic{font-size:14px;width:18px;flex-shrink:0;}
+  .obj-row b{font-size:11px;letter-spacing:.4px;min-width:66px;flex-shrink:0;}
+  .criteria-label{background:#eef1e6;border-left:3px solid var(--green);padding:5px 7px;font-size:10.5px;font-weight:700;margin-top:8px;}
+
+  table{width:100%;border-collapse:collapse;font-size:11px;}
+  thead th{background:var(--green-dark);color:#fff;font-size:9.5px;letter-spacing:.4px;padding:6px;text-align:left;}
+  tbody td{border:1px solid #d3d3c8;padding:4px 6px;vertical-align:top;}
+  .phase-cell{display:flex;align-items:center;gap:6px;font-size:9.5px;font-weight:700;color:var(--green-dark);}
+  .phase-cell .dot{width:17px;height:17px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:9.5px;flex-shrink:0;}
+  .phase-cell input{font-weight:700;color:var(--green-dark);font-size:10px;}
+  td input, td textarea{font-size:10.5px;min-height:18px;}
+  .row-actions{text-align:center;}
+  .icon-btn{background:none;border:none;cursor:pointer;color:#a33;font-size:12px;}
+
+  .pitch-wrap svg{width:100%;height:220px;background:#f6f7f2;border:1px solid var(--border);}
+
+  .scale{display:flex;gap:6px;margin:6px 0 2px;}
+  .scale label{flex:1;text-align:center;border:1px solid #ccc;padding:5px 0;font-size:11px;font-weight:700;cursor:pointer;background:#fff;}
+  .scale input{display:none;}
+  .scale input:checked + span, .scale label.sel{background:var(--green);color:#fff;border-color:var(--green);}
+  .scale-label{display:flex;justify-content:space-between;font-size:9px;color:var(--grey);margin-bottom:8px;}
+  .load-label{font-size:11px;font-weight:700;margin-top:8px;}
+  .rpe{display:flex;align-items:center;gap:6px;font-size:11px;margin-top:8px;}
+  .rpe input{width:50px;}
+
+  .obs-label{font-size:11px;font-weight:700;color:var(--green-dark);margin-top:9px;}
+
+  .stars{display:flex;gap:2px;}
+  .stars span{font-size:15px;cursor:pointer;color:#ccc;}
+  .stars span.on{color:var(--green);}
+  .rate-row{display:flex;justify-content:space-between;align-items:center;margin:8px 0;font-size:11px;gap:10px;}
+  .checks{display:flex;gap:14px;font-size:11px;margin:8px 0;}
+  .checks label{display:flex;align-items:center;gap:4px;cursor:pointer;}
+
+  .notes-area{width:100%;min-height:150px;font-size:12px;line-height:1.8;border:none;background:transparent;resize:vertical;}
+  .notes-area:focus{outline:none;}
+  .sig{border:1px solid #999;height:56px;display:flex;align-items:flex-end;justify-content:center;font-size:9px;color:var(--grey);padding-bottom:3px;letter-spacing:1px;}
+
+  .print-only{display:none;}
+
+  @media print{
+    body{background:#fff;}
+    .app{display:block;}
+    .sidebar, .toolbar{display:none !important;}
+    .content{padding:0;display:block;}
+    .sheet{box-shadow:none;margin:0 auto;width:100%;}
+    input, textarea{border-bottom:none !important;}
+    .print-only{display:block;}
+    @page{size:A4 landscape;margin:8mm;}
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const {useState, useEffect, useMemo} = React;
+
+const STORAGE_KEY = "treninkovy-blok-sessions-v1";
+
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+function blankSession(){
+  return {
+    id: uid(),
+    createdAt: new Date().toISOString(),
+    coachName: "Trenér Novák Petr",
+    coachTitle: "FOTBALOVÝ TRENÉR",
+    date: "", time: "", category: "", playersCount: "", place: "",
+    duration: "", sessionNumber: "", cycle: "", microcycle: "",
+    weather: "", theme: "", mainGoal: "",
+    objTechnique: "", objTactic: "", objPhysical: "", objMental: "", criteria: "",
+    phases: [
+      {name:"ROZCVIČKA", duration:"", description:"", notes:"", equipment:""},
+      {name:"CVIČENÍ 1", duration:"", description:"", notes:"", equipment:""},
+      {name:"CVIČENÍ 2", duration:"", description:"", notes:"", equipment:""},
+      {name:"ŘÍZENÁ HRA", duration:"", description:"", notes:"", equipment:""},
+      {name:"ZKLIDNĚNÍ", duration:"", description:"", notes:"", equipment:""},
+    ],
+    intensity: "", volume: "", totalDuration: "", recovery: "", rpe: "",
+    obsPositives: "", obsDifficulties: "", obsCorrections: "", obsRemarks: "",
+    players: [
+      {name:"", strength:"", improve:""},
+      {name:"", strength:"", improve:""},
+      {name:"", strength:"", improve:""},
+    ],
+    ratingObjectives: 0, ratingIntensity: 0, ratingCompliance: 0, ratingMotivation: 0,
+    objectivesMet: "", evalComments: "",
+    personalNotes: "",
+  };
+}
+
+function loadSessions(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return [blankSession()];
+}
+
+function Stars({value, onChange}){
+  return (
+    <div className="stars">
+      {[1,2,3,4,5].map(n=>(
+        <span key={n} className={n<=value?"on":""} onClick={()=>onChange(n===value?0:n)}>★</span>
+      ))}
+    </div>
+  );
+}
+
+function Pitch(){
+  return (
+    <div className="pitch-wrap">
+      <svg viewBox="0 0 400 230">
+        <rect x="2" y="2" width="396" height="226" fill="none" stroke="#333" strokeWidth="1.5"/>
+        <line x1="200" y1="2" x2="200" y2="228" stroke="#333" strokeWidth="1.2"/>
+        <circle cx="200" cy="115" r="28" fill="none" stroke="#333" strokeWidth="1.2"/>
+        <circle cx="200" cy="115" r="2" fill="#333"/>
+        <rect x="2" y="70" width="34" height="90" fill="none" stroke="#333" strokeWidth="1.2"/>
+        <rect x="364" y="70" width="34" height="90" fill="none" stroke="#333" strokeWidth="1.2"/>
+        <circle cx="60" cy="115" r="1.8" fill="#333"/>
+        <circle cx="340" cy="115" r="1.8" fill="#333"/>
+      </svg>
+    </div>
+  );
+}
+
+function App(){
+  const [sessions, setSessions] = useState(loadSessions);
+  const [activeId, setActiveId] = useState(()=> loadSessions()[0]?.id);
+
+  useEffect(()=>{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+  }, [sessions]);
+
+  const active = useMemo(()=> sessions.find(s=>s.id===activeId) || sessions[0], [sessions, activeId]);
+
+  function update(patch){
+    setSessions(prev => prev.map(s => s.id===active.id ? {...s, ...patch} : s));
+  }
+  function updatePhase(idx, patch){
+    const phases = active.phases.map((p,i)=> i===idx ? {...p, ...patch} : p);
+    update({phases});
+  }
+  function updatePlayer(idx, patch){
+    const players = active.players.map((p,i)=> i===idx ? {...p, ...patch} : p);
+    update({players});
+  }
+  function addPlayer(){
+    update({players: [...active.players, {name:"", strength:"", improve:""}]});
+  }
+  function removePlayer(idx){
+    update({players: active.players.filter((_,i)=>i!==idx)});
+  }
+  function newSession(){
+    const s = blankSession();
+    setSessions(prev => [s, ...prev]);
+    setActiveId(s.id);
+  }
+  function duplicateSession(){
+    const copy = {...active, id: uid(), createdAt: new Date().toISOString()};
+    setSessions(prev => [copy, ...prev]);
+    setActiveId(copy.id);
+  }
+  function deleteSession(){
+    if(sessions.length===1){ alert("Nelze smazat poslední trénink."); return; }
+    if(!confirm("Opravdu smazat tento trénink?")) return;
+    const rest = sessions.filter(s=>s.id!==active.id);
+    setSessions(rest);
+    setActiveId(rest[0].id);
+  }
+
+  if(!active) return null;
+
+  return (
+    <div className="app">
+      <div className="sidebar">
+        <div>
+          <h2>Tréninkový blok</h2>
+          <div className="sub">PLÁNOVÁNÍ · ORGANIZACE · VÝKON</div>
+        </div>
+        <button className="btn" onClick={newSession}>+ Nový trénink</button>
+        <button className="btn secondary" onClick={duplicateSession}>Duplikovat aktuální</button>
+        <button className="btn danger" onClick={deleteSession}>Smazat aktuální</button>
+        <div className="session-list">
+          {sessions.map(s=>(
+            <div key={s.id} className={"session-item"+(s.id===active.id?" active":"")} onClick={()=>setActiveId(s.id)}>
+              <div>{s.theme || s.category || "Trénink bez názvu"}</div>
+              <div className="d">{s.date || "bez data"}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={{flex:1, display:"flex", flexDirection:"column"}}>
+        <div className="toolbar">
+          <div className="info">Vyplň políčka přímo v šabloně — vše se ukládá automaticky v prohlížeči.</div>
+          <button className="btn" onClick={()=>window.print()}>🖨 Vytisknout / Uložit jako PDF</button>
+        </div>
+
+        <div className="content">
+          <div className="sheet">
+
+            <div className="header">
+              <div className="club">
+                <div className="badge">⚽</div>
+                <div className="club-name">
+                  <input value={active.coachName} onChange={e=>update({coachName:e.target.value})}/>
+                  <div className="sub-input">
+                    <input value={active.coachTitle} onChange={e=>update({coachTitle:e.target.value})}/>
+                  </div>
+                </div>
+              </div>
+              <div className="title">
+                <h1>TECHNICKÁ KARTA TRÉNINKU</h1>
+                <p>Plánování · Organizace · Výkon</p>
+              </div>
+              <div className="header-icon">🏃</div>
+            </div>
+
+            <div className="grid">
+              <div className="panel">
+                <div className="panel-head"><span className="ic">📋</span>1. OBECNÉ INFORMACE</div>
+                <div className="panel-body">
+                  <div className="row-2">
+                    <div className="field"><b>Datum:</b><input type="date" value={active.date} onChange={e=>update({date:e.target.value})}/></div>
+                    <div className="field"><b>Čas:</b><input type="time" value={active.time} onChange={e=>update({time:e.target.value})}/></div>
+                  </div>
+                  <div className="field"><b>Kategorie:</b><input value={active.category} onChange={e=>update({category:e.target.value})}/></div>
+                  <div className="field"><b>Počet hráčů:</b><input value={active.playersCount} onChange={e=>update({playersCount:e.target.value})}/></div>
+                  <div className="field"><b>Místo:</b><input value={active.place} onChange={e=>update({place:e.target.value})}/></div>
+                  <div className="row-2">
+                    <div className="field"><b>Délka:</b><input value={active.duration} onChange={e=>update({duration:e.target.value})}/></div>
+                    <div className="field"><b>Trénink č.:</b><input value={active.sessionNumber} onChange={e=>update({sessionNumber:e.target.value})}/></div>
+                  </div>
+                  <div className="row-2">
+                    <div className="field"><b>Cyklus:</b><input value={active.cycle} onChange={e=>update({cycle:e.target.value})}/></div>
+                    <div className="field"><b>Mikrocyklus:</b><input value={active.microcycle} onChange={e=>update({microcycle:e.target.value})}/></div>
+                  </div>
+                  <div><b style={{fontSize:"11px"}}>Počasí:</b>
+                    <div className="weather">
+                      {[["☀️","slunečno"],["⛅","polojasno"],["☁️","zataženo"],["🌧️","déšť"],["💨","vítr"]].map(([ic,val])=>(
+                        <label key={val}>{ic}
+                          <input type="radio" name="weather" checked={active.weather===val} onChange={()=>update({weather:val})}/>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="field"><b>Téma:</b><input value={active.theme} onChange={e=>update({theme:e.target.value})}/></div>
+                  <div className="field"><b>Hlavní cíl:</b><input value={active.mainGoal} onChange={e=>update({mainGoal:e.target.value})}/></div>
+                </div>
+              </div>
+
+              <div className="panel">
+                <div className="panel-head"><span className="ic">🎯</span>2. CÍLE TRÉNINKU</div>
+                <div className="panel-body">
+                  <div className="obj-row"><span className="ic">⚽</span><b>TECHNIKA</b><input value={active.objTechnique} onChange={e=>update({objTechnique:e.target.value})}/></div>
+                  <div className="obj-row"><span className="ic">📐</span><b>TAKTIKA</b><input value={active.objTactic} onChange={e=>update({objTactic:e.target.value})}/></div>
+                  <div className="obj-row"><span className="ic">🏃</span><b>KONDICE</b><input value={active.objPhysical} onChange={e=>update({objPhysical:e.target.value})}/></div>
+                  <div className="obj-row"><span className="ic">🧠</span><b>MENTÁLNÍ</b><input value={active.objMental} onChange={e=>update({objMental:e.target.value})}/></div>
+                  <div className="criteria-label">KRITÉRIA ÚSPĚCHU:</div>
+                  <textarea value={active.criteria} onChange={e=>update({criteria:e.target.value})} rows={3}/>
+                </div>
+              </div>
+
+              <div className="panel">
+                <div className="panel-head"><span className="ic">📝</span>3. PRŮBĚH TRÉNINKU</div>
+                <div className="panel-body" style={{padding:"8px"}}>
+                  <table>
+                    <thead>
+                      <tr><th style={{width:"18%"}}>FÁZE</th><th style={{width:"9%"}}>DÉLKA</th><th style={{width:"30%"}}>POPIS / ORGANIZACE</th><th style={{width:"22%"}}>POKYNY</th><th style={{width:"14%"}}>VYBAVENÍ</th><th style={{width:"7%"}}></th></tr>
+                    </thead>
+                    <tbody>
+                      {active.phases.map((p,i)=>(
+                        <tr key={i}>
+                          <td><div className="phase-cell"><span className="dot">{i+1}</span><input value={p.name} onChange={e=>updatePhase(i,{name:e.target.value})}/></div></td>
+                          <td><input value={p.duration} onChange={e=>updatePhase(i,{duration:e.target.value})}/></td>
+                          <td><textarea value={p.description} onChange={e=>updatePhase(i,{description:e.target.value})}/></td>
+                          <td><textarea value={p.notes} onChange={e=>updatePhase(i,{notes:e.target.value})}/></td>
+                          <td><input value={p.equipment} onChange={e=>updatePhase(i,{equipment:e.target.value})}/></td>
+                          <td className="row-actions">
+                            <button className="icon-btn" onClick={()=>update({phases: active.phases.filter((_,idx)=>idx!==i)})}>✕</button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <button className="btn secondary" style={{marginTop:"8px"}} onClick={()=>update({phases:[...active.phases,{name:"NOVÁ FÁZE",duration:"",description:"",notes:"",equipment:""}]})}>+ Přidat fázi</button>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid2">
+              <div className="panel">
+                <div className="panel-head"><span className="ic">🖊️</span>4. SCHÉMA / ORGANIZACE</div>
+                <div className="panel-body"><Pitch/></div>
+              </div>
+
+              <div className="panel">
+                <div className="panel-head"><span className="ic">📊</span>5. ZÁTĚŽ TRÉNINKU</div>
+                <div className="panel-body">
+                  <div className="load-label">INTENZITA</div>
+                  <div className="scale">
+                    {[1,2,3,4,5].map(n=>(
+                      <label key={n} className={active.intensity===n?"sel":""} onClick={()=>update({intensity:n})}>{n}</label>
+                    ))}
+                  </div>
+                  <div className="scale-label"><span>Nízká</span><span>Střední</span><span>Vysoká</span></div>
+                  <div className="load-label">OBJEM</div>
+                  <input value={active.volume} onChange={e=>update({volume:e.target.value})}/>
+                  <div className="load-label">CELKOVÁ DOBA ZATÍŽENÍ</div>
+                  <input value={active.totalDuration} onChange={e=>update({totalDuration:e.target.value})}/>
+                  <div className="load-label">REGENERACE</div>
+                  <input value={active.recovery} onChange={e=>update({recovery:e.target.value})}/>
+                  <div className="rpe">🏃 RPE (vnímané úsilí) <input value={active.rpe} onChange={e=>update({rpe:e.target.value})}/> / 10</div>
+                </div>
+              </div>
+
+              <div className="panel">
+                <div className="panel-head"><span className="ic">👁️</span>6. POZOROVÁNÍ</div>
+                <div className="panel-body">
+                  <div className="obs-label">Pozitiva:</div>
+                  <textarea value={active.obsPositives} onChange={e=>update({obsPositives:e.target.value})} rows={2}/>
+                  <div className="obs-label">Zjištěné obtíže:</div>
+                  <textarea value={active.obsDifficulties} onChange={e=>update({obsDifficulties:e.target.value})} rows={2}/>
+                  <div className="obs-label">Nápravy k provedení:</div>
+                  <textarea value={active.obsCorrections} onChange={e=>update({obsCorrections:e.target.value})} rows={2}/>
+                  <div className="obs-label">Poznámky:</div>
+                  <textarea value={active.obsRemarks} onChange={e=>update({obsRemarks:e.target.value})} rows={2}/>
+                </div>
+              </div>
+
+              <div className="panel">
+                <div className="panel-head"><span className="ic">👥</span>7. HRÁČI KE SLEDOVÁNÍ</div>
+                <div className="panel-body" style={{padding:"8px"}}>
+                  <table>
+                    <thead><tr><th>HRÁČ</th><th>SILNÁ STRÁNKA</th><th>KE ZLEPŠENÍ</th><th style={{width:"8%"}}></th></tr></thead>
+                    <tbody>
+                      {active.players.map((p,i)=>(
+                        <tr key={i}>
+                          <td><input value={p.name} onChange={e=>updatePlayer(i,{name:e.target.value})}/></td>
+                          <td><input value={p.strength} onChange={e=>updatePlayer(i,{strength:e.target.value})}/></td>
+                          <td><input value={p.improve} onChange={e=>updatePlayer(i,{improve:e.target.value})}/></td>
+                          <td className="row-actions"><button className="icon-btn" onClick={()=>removePlayer(i)}>✕</button></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <button className="btn secondary" style={{marginTop:"8px"}} onClick={addPlayer}>+ Přidat hráče</button>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid3">
+              <div className="panel">
+                <div className="panel-head"><span className="ic">📋</span>8. HODNOCENÍ TRÉNINKU</div>
+                <div className="panel-body">
+                  <div style={{display:"flex", gap:"20px"}}>
+                    <div style={{flex:1}}>
+                      <div className="rate-row"><span>Naplnění cílů</span><Stars value={active.ratingObjectives} onChange={v=>update({ratingObjectives:v})}/></div>
+                      <div className="rate-row"><span>Intenzita tréninku</span><Stars value={active.ratingIntensity} onChange={v=>update({ratingIntensity:v})}/></div>
+                      <div className="rate-row"><span>Dodržení pokynů</span><Stars value={active.ratingCompliance} onChange={v=>update({ratingCompliance:v})}/></div>
+                      <div className="rate-row"><span>Motivace / nasazení</span><Stars value={active.ratingMotivation} onChange={v=>update({ratingMotivation:v})}/></div>
+                    </div>
+                    <div style={{flex:1, borderLeft:"1px solid #ddd", paddingLeft:"16px"}}>
+                      <div style={{fontSize:"11px", fontWeight:700}}>CÍLE SPLNĚNY:</div>
+                      <div className="checks">
+                        {["ANO","ČÁSTEČNĚ","NE"].map(opt=>(
+                          <label key={opt}><input type="radio" name="objMet" checked={active.objectivesMet===opt} onChange={()=>update({objectivesMet:opt})}/>{opt}</label>
+                        ))}
+                      </div>
+                      <div style={{fontSize:"11px", fontWeight:700, marginTop:"8px"}}>KOMENTÁŘE:</div>
+                      <textarea value={active.evalComments} onChange={e=>update({evalComments:e.target.value})} rows={4}/>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="panel">
+                <div className="panel-head"><span className="ic">✒️</span>9. OSOBNÍ POZNÁMKY</div>
+                <div className="panel-body">
+                  <textarea className="notes-area" value={active.personalNotes} onChange={e=>update({personalNotes:e.target.value})}/>
+                  <div style={{display:"flex", justifyContent:"flex-end", marginTop:"10px"}}>
+                    <div style={{width:"220px"}}>
+                      <div style={{fontSize:"10px", fontWeight:700, textAlign:"center", marginBottom:"4px"}}>PODPIS TRENÉRA</div>
+                      <div className="sig"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
