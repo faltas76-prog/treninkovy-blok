@@ -106,11 +106,11 @@
   .criteria-label{background:#eef1e6;border-left:3px solid var(--green);padding:5px 7px;font-size:10.5px;font-weight:700;margin-top:8px;}
 
   table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:11px;}
-  thead th{background:var(--green-dark);color:#fff;font-size:9.5px;letter-spacing:.4px;padding:6px;text-align:left;overflow-wrap:break-word;}
+  thead th{background:var(--green-dark);color:#fff;font-size:9.5px;letter-spacing:.4px;padding:6px 4px;text-align:left;word-break:keep-all;}
   tbody td{border:1px solid #d3d3c8;padding:4px 6px;vertical-align:top;overflow-wrap:break-word;}
-  .phase-cell{display:flex;align-items:center;gap:6px;font-size:9.5px;font-weight:700;color:var(--green-dark);}
-  .phase-cell .dot{width:17px;height:17px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:9.5px;flex-shrink:0;}
-  .phase-cell input{font-weight:700;color:var(--green-dark);font-size:10px;}
+  .phase-cell{display:flex;align-items:center;gap:5px;font-size:9.5px;font-weight:700;color:var(--green-dark);min-width:0;}
+  .phase-cell .dot{width:16px;height:16px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;}
+  .phase-cell input{font-weight:700;color:var(--green-dark);font-size:9.5px;min-width:0;padding:2px;}
   td input, td textarea{font-size:10.5px;min-height:18px;}
   .row-actions{text-align:center;}
   .icon-btn{background:none;border:none;cursor:pointer;color:#a33;font-size:12px;}
@@ -371,7 +371,7 @@ function App(){
                 <div className="panel-body" style={{padding:"8px"}}>
                   <table>
                     <thead>
-                      <tr><th style={{width:"18%"}}>FÁZE</th><th style={{width:"9%"}}>DÉLKA</th><th style={{width:"30%"}}>POPIS / ORGANIZACE</th><th style={{width:"22%"}}>POKYNY</th><th style={{width:"14%"}}>VYBAVENÍ</th><th style={{width:"7%"}}></th></tr>
+                      <tr><th style={{width:"22%"}}>FÁZE</th><th style={{width:"9%"}}>DÉLKA</th><th style={{width:"27%"}}>POPIS / ORGANIZACE</th><th style={{width:"19%"}}>POKYNY</th><th style={{width:"16%"}}>VYBAVENÍ</th><th style={{width:"7%"}}></th></tr>
                     </thead>
                     <tbody>
                       {active.phases.map((p,i)=>(
