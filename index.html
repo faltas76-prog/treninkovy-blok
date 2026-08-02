@@ -141,6 +141,45 @@
 
   .print-only{display:none;}
 
+  /* ---------- Mobile / tablet ---------- */
+  .menu-btn{display:none;background:var(--ink);color:#fff;border:1px solid #444;border-radius:4px;padding:8px 10px;font-size:14px;cursor:pointer;flex-shrink:0;}
+  .sidebar-backdrop{display:none;}
+
+  @media (max-width:900px){
+    .menu-btn{display:inline-flex;}
+    .sidebar{
+      position:fixed;top:0;left:0;bottom:0;z-index:50;width:78%;max-width:280px;
+      transform:translateX(-100%);transition:transform .25s ease;box-shadow:4px 0 20px rgba(0,0,0,.35);
+    }
+    .sidebar.open{transform:translateX(0);}
+    .sidebar-backdrop.show{display:block;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:40;}
+    .toolbar{padding:10px 12px;flex-wrap:wrap;gap:8px;}
+    .toolbar .info{display:none;}
+    .content{padding:10px;}
+  }
+
+  @media (max-width:640px){
+    .sheet{padding:10px;}
+    .row-2{flex-direction:column;gap:0;}
+    .club-name input{width:110px;font-size:11px;}
+    .club-name .sub-input{width:110px;}
+    .title h1{font-size:15px;}
+    .badge{width:34px;height:34px;font-size:14px;}
+    .header-icon{display:none;}
+    .panel-body{padding:9px 10px;}
+    table, thead, tbody, tr{display:block;width:100%;}
+    thead{display:none;}
+    tbody td{display:block;border:none;border-bottom:1px dotted #d3d3c8;padding:5px 2px;}
+    tbody tr{border:1px solid #d3d3c8;margin-bottom:8px;border-radius:3px;padding:4px;background:#fff;}
+    tbody td:before{content:attr(data-label);display:block;font-size:9px;font-weight:700;color:var(--green-dark);letter-spacing:.4px;margin-bottom:2px;}
+    .phase-cell{gap:6px;}
+    .row-actions{text-align:left;border-bottom:none !important;}
+  }
+
+  @media print{
+    .menu-btn, .sidebar-backdrop{display:none !important;}
+  }
+
   @media print{
     body{background:#fff;}
     .app{display:block;}
@@ -231,6 +270,7 @@ function Pitch(){
 function App(){
   const [sessions, setSessions] = useState(loadSessions);
   const [activeId, setActiveId] = useState(()=> loadSessions()[0]?.id);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(()=>{
     localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
@@ -259,11 +299,13 @@ function App(){
     const s = blankSession();
     setSessions(prev => [s, ...prev]);
     setActiveId(s.id);
+    setSidebarOpen(false);
   }
   function duplicateSession(){
     const copy = {...active, id: uid(), createdAt: new Date().toISOString()};
     setSessions(prev => [copy, ...prev]);
     setActiveId(copy.id);
+    setSidebarOpen(false);
   }
   function deleteSession(){
     if(sessions.length===1){ alert("Nelze smazat poslední trénink."); return; }
@@ -277,7 +319,7 @@ function App(){
 
   return (
     <div className="app">
-      <div className="sidebar">
+      <div className={"sidebar"+(sidebarOpen?" open":"")}>
         <div>
           <h2>Tréninkový blok</h2>
           <div className="sub">PLÁNOVÁNÍ · ORGANIZACE · VÝKON</div>
@@ -287,16 +329,18 @@ function App(){
         <button className="btn danger" onClick={deleteSession}>Smazat aktuální</button>
         <div className="session-list">
           {sessions.map(s=>(
-            <div key={s.id} className={"session-item"+(s.id===active.id?" active":"")} onClick={()=>setActiveId(s.id)}>
+            <div key={s.id} className={"session-item"+(s.id===active.id?" active":"")} onClick={()=>{setActiveId(s.id); setSidebarOpen(false);}}>
               <div>{s.theme || s.category || "Trénink bez názvu"}</div>
               <div className="d">{s.date || "bez data"}</div>
             </div>
           ))}
         </div>
       </div>
+      <div className={"sidebar-backdrop"+(sidebarOpen?" show":"")} onClick={()=>setSidebarOpen(false)}></div>
 
-      <div style={{flex:1, display:"flex", flexDirection:"column"}}>
+      <div style={{flex:1, display:"flex", flexDirection:"column", minWidth:0}}>
         <div className="toolbar">
+          <button className="btn menu-btn" onClick={()=>setSidebarOpen(o=>!o)}>☰</button>
           <div className="info">Vyplň políčka přímo v šabloně — vše se ukládá automaticky v prohlížeči.</div>
           <button className="btn" onClick={()=>window.print()}>🖨 Vytisknout / Uložit jako PDF</button>
         </div>
@@ -376,11 +420,11 @@ function App(){
                     <tbody>
                       {active.phases.map((p,i)=>(
                         <tr key={i}>
-                          <td><div className="phase-cell"><span className="dot">{i+1}</span><input value={p.name} onChange={e=>updatePhase(i,{name:e.target.value})}/></div></td>
-                          <td><input value={p.duration} onChange={e=>updatePhase(i,{duration:e.target.value})}/></td>
-                          <td><textarea value={p.description} onChange={e=>updatePhase(i,{description:e.target.value})}/></td>
-                          <td><textarea value={p.notes} onChange={e=>updatePhase(i,{notes:e.target.value})}/></td>
-                          <td><input value={p.equipment} onChange={e=>updatePhase(i,{equipment:e.target.value})}/></td>
+                          <td data-label="FÁZE"><div className="phase-cell"><span className="dot">{i+1}</span><input value={p.name} onChange={e=>updatePhase(i,{name:e.target.value})}/></div></td>
+                          <td data-label="DÉLKA"><input value={p.duration} onChange={e=>updatePhase(i,{duration:e.target.value})}/></td>
+                          <td data-label="POPIS / ORGANIZACE"><textarea value={p.description} onChange={e=>updatePhase(i,{description:e.target.value})}/></td>
+                          <td data-label="POKYNY"><textarea value={p.notes} onChange={e=>updatePhase(i,{notes:e.target.value})}/></td>
+                          <td data-label="VYBAVENÍ"><input value={p.equipment} onChange={e=>updatePhase(i,{equipment:e.target.value})}/></td>
                           <td className="row-actions">
                             <button className="icon-btn" onClick={()=>update({phases: active.phases.filter((_,idx)=>idx!==i)})}>✕</button>
                           </td>
@@ -441,9 +485,9 @@ function App(){
                     <tbody>
                       {active.players.map((p,i)=>(
                         <tr key={i}>
-                          <td><input value={p.name} onChange={e=>updatePlayer(i,{name:e.target.value})}/></td>
-                          <td><input value={p.strength} onChange={e=>updatePlayer(i,{strength:e.target.value})}/></td>
-                          <td><input value={p.improve} onChange={e=>updatePlayer(i,{improve:e.target.value})}/></td>
+                          <td data-label="HRÁČ"><input value={p.name} onChange={e=>updatePlayer(i,{name:e.target.value})}/></td>
+                          <td data-label="SILNÁ STRÁNKA"><input value={p.strength} onChange={e=>updatePlayer(i,{strength:e.target.value})}/></td>
+                          <td data-label="KE ZLEPŠENÍ"><input value={p.improve} onChange={e=>updatePlayer(i,{improve:e.target.value})}/></td>
                           <td className="row-actions"><button className="icon-btn" onClick={()=>removePlayer(i)}>✕</button></td>
                         </tr>
                       ))}
