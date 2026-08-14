@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#14150f"/>
+  <rect x="0" y="0" width="512" height="512" rx="80" fill="none"/>
+  <path d="M512 0 L512 180 L340 0 Z" fill="#4f6b2c" opacity="0.55"/>
+  <path d="M512 60 L512 220 L380 60 Z" fill="#7d9a4e" opacity="0.4"/>
+  <circle cx="256" cy="266" r="120" fill="none" stroke="#f3f3ee" stroke-width="10"/>
+  <g fill="#f3f3ee" stroke="#14150f" stroke-width="4">
+    <polygon points="256,196 286,220 274,256 238,256 226,220"/>
+    <polygon points="256,196 226,168 256,140 286,168"/>
+    <polygon points="190,236 226,220 238,256 208,286 174,268"/>
+    <polygon points="322,236 286,220 274,256 304,286 338,268"/>
+    <polygon points="238,256 274,256 286,292 256,316 226,292"/>
+  </g>
+  <text x="256" y="430" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="46" fill="#f3f3ee" text-anchor="middle" letter-spacing="2">TB</text>
+</svg>
