@@ -1,4 +1,4 @@
-const CACHE_NAME = "treninkovy-blok-v2";
+const CACHE_NAME = "treninkovy-blok-v3";
 
 const CORE_ASSETS = [
   "./",
