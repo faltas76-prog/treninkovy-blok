@@ -1,0 +1,15 @@
+{
+  "name": "Tréninkový blok",
+  "short_name": "Trénink",
+  "description": "Technická karta tréninku – offline tvorba a tisk tréninkových plánů",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#d8d8d0",
+  "theme_color": "#14150f",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}
