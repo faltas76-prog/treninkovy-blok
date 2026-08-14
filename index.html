@@ -12,8 +12,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Trénink">
-<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
 <style>
   :root{
@@ -207,7 +207,25 @@
 </style>
 </head>
 <body>
-<div id="root"></div>
+<div id="root">
+  <div id="boot-fallback" style="font-family:Arial,Helvetica,sans-serif;max-width:480px;margin:60px auto;padding:20px;text-align:center;color:#333;">
+    <div style="font-size:14px;">Načítání aplikace…</div>
+    <div style="font-size:11px;color:#888;margin-top:10px;">Pokud se tahle hláška nezmění, appka se nenačetla — zkontroluj připojení k internetu a zkus stránku znovu načíst.</div>
+  </div>
+</div>
+
+<script>
+  // If anything below throws, show it on screen instead of leaving a silent blank page —
+  // there's usually no easy way to open dev console on a phone.
+  window.addEventListener("error", function(e){
+    var el = document.getElementById("boot-fallback");
+    if(el){
+      el.innerHTML = '<div style="color:#a33;font-weight:bold;">Chyba při načítání aplikace</div>'
+        + '<div style="font-size:11px;margin-top:8px;word-break:break-word;">' + (e.message || e) + '</div>'
+        + '<div style="font-size:10px;color:#888;margin-top:8px;">Zkus obnovit stránku, nebo zkontroluj připojení k internetu.</div>';
+    }
+  });
+</script>
 
 <script type="text/babel" data-presets="react">
 const {useState, useEffect, useMemo, useRef} = React;
