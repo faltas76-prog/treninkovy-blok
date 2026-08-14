@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tréninkový blok</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<meta name="theme-color" content="#14150f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Trénink">
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
@@ -417,11 +425,26 @@ function App(){
   const [sessions, setSessions] = useState(loadSessions);
   const [activeId, setActiveId] = useState(()=> loadSessions()[0]?.id);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [installPrompt, setInstallPrompt] = useState(null);
 
   useEffect(()=>{
     localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
   }, [sessions]);
 
+  useEffect(()=>{
+    function onPrompt(e){
+      e.preventDefault();
+      setInstallPrompt(e);
+    }
+    window.addEventListener("beforeinstallprompt", onPrompt);
+    return ()=> window.removeEventListener("beforeinstallprompt", onPrompt);
+  }, []);
+
+  function installApp(){
+    if(!installPrompt) return;
+    installPrompt.prompt();
+    installPrompt.userChoice.finally(()=> setInstallPrompt(null));
+  }
   const active = useMemo(()=> sessions.find(s=>s.id===activeId) || sessions[0], [sessions, activeId]);
 
   function update(patch){
@@ -488,6 +511,7 @@ function App(){
         <div className="toolbar">
           <button className="btn menu-btn" onClick={()=>setSidebarOpen(o=>!o)}>☰</button>
           <div className="info">Vyplň políčka přímo v šabloně — vše se ukládá automaticky v prohlížeči.</div>
+          {installPrompt && <button className="btn secondary" onClick={installApp}>📲 Přidat na plochu</button>}
           <button className="btn" onClick={()=>window.print()}>🖨 Vytisknout / Uložit jako PDF</button>
         </div>
 
@@ -691,6 +715,13 @@ function App(){
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+<script>
+  if("serviceWorker" in navigator){
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch(() => {});
+    });
+  }
 </script>
 </body>
 </html>
